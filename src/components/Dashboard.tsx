@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Users, 
-  Shield, 
-  MapPin, 
+import {
+  Users,
+  Shield,
+  MapPin,
   AlertTriangle,
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -37,10 +37,10 @@ const data = [
 const COLORS = ['#141414', '#F27D26', '#E4E3E0', '#8E9299'];
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ 
-    vigilantes: 0, 
-    weapons: 0, 
-    posts: 0, 
+  const [stats, setStats] = useState({
+    vigilantes: 0,
+    weapons: 0,
+    posts: 0,
     occurrences: 0,
     monthly_income: 0,
     monthly_expense: 0
@@ -51,10 +51,10 @@ export default function Dashboard() {
   }, []);
 
   const statCards = [
-    { title: 'Vigilantes Ativos', value: stats.vigilantes, icon: Users, trend: '+2.5%', isUp: true },
-    { title: 'Armas em Uso', value: stats.weapons, icon: Shield, trend: '-1.2%', isUp: false },
-    { title: 'Postos Operacionais', value: stats.posts, icon: MapPin, trend: '+4.0%', isUp: true },
-    { title: 'Ocorrências (Mês)', value: stats.occurrences, icon: AlertTriangle, trend: '+12%', isUp: false },
+    { title: 'Vigilantes Ativos', value: stats.totalVigilantes || stats.vigilantes || 0, icon: Users, trend: '+2.5%', isUp: true },
+    { title: 'Armas em Uso', value: stats.totalWeapons || stats.weapons || 0, icon: Shield, trend: '-1.2%', isUp: false },
+    { title: 'Postos Operacionais', value: stats.totalPosts || stats.posts || 0, icon: MapPin, trend: '+4.0%', isUp: true },
+    { title: 'Ocorrências (Mês)', value: stats.totalOccurrences || stats.occurrences || 0, icon: AlertTriangle, trend: '+12%', isUp: false },
   ];
 
   return (
@@ -95,18 +95,18 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E3E0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 12, fontWeight: 600 }}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 12, fontWeight: 600 }}
                 />
-                <Tooltip 
+                <Tooltip
                   cursor={{ fill: 'rgba(242, 125, 38, 0.1)' }}
                   contentStyle={{ border: '1px solid #141414', borderRadius: '0px' }}
                 />
@@ -135,26 +135,26 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E4E3E0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 12, fontWeight: 600 }}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 12, fontWeight: 600 }}
                   domain={[80, 100]}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ border: '1px solid #141414', borderRadius: '0px' }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="presenca" 
-                  stroke="#F27D26" 
-                  strokeWidth={3} 
+                <Line
+                  type="monotone"
+                  dataKey="presenca"
+                  stroke="#F27D26"
+                  strokeWidth={3}
                   dot={{ r: 6, fill: '#F27D26', strokeWidth: 2, stroke: '#fff' }}
                   activeDot={{ r: 8 }}
                 />
@@ -177,8 +177,8 @@ export default function Dashboard() {
               <div key={i} className={cn(
                 "p-4 border-l-4 flex items-center justify-between",
                 alert.type === 'warning' ? "bg-amber-50 border-amber-500 text-amber-800" :
-                alert.type === 'error' ? "bg-rose-50 border-rose-500 text-rose-800" :
-                "bg-blue-50 border-blue-500 text-blue-800"
+                  alert.type === 'error' ? "bg-rose-50 border-rose-500 text-rose-800" :
+                    "bg-blue-50 border-blue-500 text-blue-800"
               )}>
                 <div className="flex items-center">
                   <AlertTriangle size={18} className="mr-3" />
@@ -189,18 +189,18 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-        
+
         <div className="card-brutalist bg-brand-primary text-brand-bg">
           <h3 className="font-bold text-sm uppercase tracking-widest mb-6 text-brand-accent">Resumo Financeiro (Mês)</h3>
           <div className="space-y-6">
             <div>
               <p className="text-xs opacity-60 uppercase font-bold mb-1">Receita Mensal</p>
-              <p className="text-2xl font-bold font-mono">{stats.monthly_income.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
+              <p className="text-2xl font-bold font-mono">{(stats.monthly_income || 0).toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
             </div>
             <div className="h-px bg-brand-bg/10" />
             <div>
               <p className="text-xs opacity-60 uppercase font-bold mb-1">Despesa Mensal</p>
-              <p className="text-2xl font-bold font-mono">{stats.monthly_expense.toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
+              <p className="text-2xl font-bold font-mono">{(stats.monthly_expense || 0).toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
             </div>
             <button className="w-full py-3 bg-brand-accent text-brand-primary font-bold uppercase text-xs tracking-widest hover:bg-white transition-colors">
               Ver Fluxo de Caixa
