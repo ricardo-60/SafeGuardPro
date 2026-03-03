@@ -7,11 +7,10 @@ export default function VigilanteList() {
   const [vigilantes, setVigilantes] = useState<Vigilante[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    bi_number: '', 
-    contact: '', 
-    base_salary: '',
+  const [formData, setFormData] = useState({
+    name: '',
+    bi_number: '',
+    contact: '',
     status: 'active' as 'active' | 'suspended' | 'dismissed'
   });
 
@@ -25,11 +24,10 @@ export default function VigilanteList() {
   };
 
   const handleEdit = (v: Vigilante) => {
-    setFormData({ 
-      name: v.name, 
-      bi_number: v.bi_number, 
-      contact: v.contact, 
-      base_salary: v.base_salary.toString(),
+    setFormData({
+      name: v.name,
+      bi_number: v.bi_number,
+      contact: v.contact,
       status: v.status
     });
     setEditingId(v.id);
@@ -46,24 +44,23 @@ export default function VigilanteList() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const data = {
-      ...formData,
-      base_salary: parseFloat(formData.base_salary)
+      ...formData
     };
-    
+
     if (editingId) {
       await api.updateVigilante(editingId, data);
     } else {
       await api.createVigilante(data);
     }
-    
+
     setIsModalOpen(false);
     setEditingId(null);
-    setFormData({ name: '', bi_number: '', contact: '', base_salary: '', status: 'active' });
+    setFormData({ name: '', bi_number: '', contact: '', status: 'active' });
     loadVigilantes();
   };
 
   const openNewModal = () => {
-    setFormData({ name: '', bi_number: '', contact: '', base_salary: '', status: 'active' });
+    setFormData({ name: '', bi_number: '', contact: '', status: 'active' });
     setEditingId(null);
     setIsModalOpen(true);
   };
@@ -73,9 +70,9 @@ export default function VigilanteList() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-primary/40" size={18} />
-          <input 
-            type="text" 
-            placeholder="Buscar vigilante por nome ou BI..." 
+          <input
+            type="text"
+            placeholder="Buscar vigilante por nome ou BI..."
             className="w-full pl-10 pr-4 py-2 bg-white border border-brand-primary/10 focus:border-brand-accent outline-none transition-colors"
           />
         </div>
@@ -86,7 +83,7 @@ export default function VigilanteList() {
           <button className="flex items-center px-4 py-2 bg-white border border-brand-primary/10 font-bold text-xs uppercase tracking-widest hover:bg-brand-primary hover:text-brand-bg transition-all">
             <Download size={16} className="mr-2" /> Exportar
           </button>
-          <button 
+          <button
             onClick={openNewModal}
             className="flex items-center px-6 py-2 bg-brand-accent text-brand-primary font-bold text-xs uppercase tracking-widest hover:bg-brand-primary hover:text-brand-bg transition-all shadow-[4px_4px_0px_0px_rgba(20,20,20,1)]"
           >
@@ -117,20 +114,20 @@ export default function VigilanteList() {
               <div>
                 <span className={cn(
                   "px-2 py-1 text-[10px] font-bold uppercase rounded",
-                  v.status === 'active' ? "bg-emerald-100 text-emerald-700" : 
-                  v.status === 'suspended' ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
+                  v.status === 'active' ? "bg-emerald-100 text-emerald-700" :
+                    v.status === 'suspended' ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
                 )}>
                   {v.status === 'active' ? 'Ativo' : v.status === 'suspended' ? 'Suspenso' : 'Demitido'}
                 </span>
               </div>
               <div className="text-right flex justify-end space-x-2">
-                <button 
+                <button
                   onClick={() => handleEdit(v)}
                   className="p-1 hover:bg-brand-primary/10 rounded transition-colors"
                 >
                   <MoreVertical size={16} />
                 </button>
-                <button 
+                <button
                   onClick={() => handleDelete(v.id)}
                   className="p-1 hover:bg-rose-100 text-rose-600 rounded transition-colors"
                 >
@@ -158,50 +155,40 @@ export default function VigilanteList() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-bold uppercase mb-1">Nome Completo</label>
-                <input 
+                <input
                   required
                   className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent"
                   value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1">Nº BI</label>
-                  <input 
+                  <input
                     required
                     className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent"
                     value={formData.bi_number}
-                    onChange={e => setFormData({...formData, bi_number: e.target.value})}
+                    onChange={e => setFormData({ ...formData, bi_number: e.target.value })}
                   />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1">Contacto</label>
-                  <input 
+                  <input
                     required
                     className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent"
                     value={formData.contact}
-                    onChange={e => setFormData({...formData, contact: e.target.value})}
+                    onChange={e => setFormData({ ...formData, contact: e.target.value })}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase mb-1">Salário Base (Kz)</label>
-                  <input 
-                    type="number"
-                    required
-                    className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent"
-                    value={formData.base_salary}
-                    onChange={e => setFormData({...formData, base_salary: e.target.value})}
-                  />
-                </div>
-                <div>
                   <label className="block text-[10px] font-bold uppercase mb-1">Status</label>
-                  <select 
+                  <select
                     className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent bg-white"
                     value={formData.status}
-                    onChange={e => setFormData({...formData, status: e.target.value as any})}
+                    onChange={e => setFormData({ ...formData, status: e.target.value as any })}
                   >
                     <option value="active">Ativo</option>
                     <option value="suspended">Suspenso</option>
@@ -210,14 +197,14 @@ export default function VigilanteList() {
                 </div>
               </div>
               <div className="pt-4 flex justify-end space-x-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-6 py-2 font-bold text-xs uppercase tracking-widest hover:underline"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="px-8 py-2 bg-brand-primary text-brand-bg font-bold text-xs uppercase tracking-widest hover:bg-brand-accent hover:text-brand-primary transition-all"
                 >
