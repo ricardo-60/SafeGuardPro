@@ -45,15 +45,22 @@ export const api = {
   // Vigilantes
   getVigilantes: async (): Promise<Vigilante[]> => {
     const { data } = await supabase.from('vigilantes').select('*');
-    return data || [];
+    return (data || []).map(v => ({
+      ...v,
+      contact: v.phone // map db phone to frontend contact
+    })) as Vigilante[];
   },
   createVigilante: async (data: Partial<Vigilante>) => {
-    const { data: res } = await supabase.from('vigilantes').insert(data).select().single();
-    return res;
+    const { contact, ...rest } = data;
+    const dbPayload = { ...rest, phone: contact };
+    const { data: res } = await supabase.from('vigilantes').insert(dbPayload).select().single();
+    return res ? { ...res, contact: res.phone } as Vigilante : null;
   },
   updateVigilante: async (id: number, data: Partial<Vigilante>) => {
-    const { data: res } = await supabase.from('vigilantes').update(data).eq('id', id).select().single();
-    return res;
+    const { contact, ...rest } = data;
+    const dbPayload = contact !== undefined ? { ...rest, phone: contact } : rest;
+    const { data: res } = await supabase.from('vigilantes').update(dbPayload).eq('id', id).select().single();
+    return res ? { ...res, contact: res.phone } as Vigilante : null;
   },
   deleteVigilante: async (id: number) => {
     await supabase.from('vigilantes').delete().eq('id', id);
