@@ -1,0 +1,8 @@
+{
+  "name": "SafeGuard Pro - Gestão de Segurança Privada",
+  "description": "Sistema completo de gestão para empresas de segurança privada, incluindo controle de RH, armamento, equipamentos, postos, escalas, financeiro e ocorrências.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
