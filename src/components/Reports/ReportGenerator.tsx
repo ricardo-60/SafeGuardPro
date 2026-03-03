@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { FileText, Download, PieChart, BarChart, Calendar, Filter } from 'lucide-react';
 import { api } from '../../lib/api';
+import { PDFBuilder } from '../../lib/pdf';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function ReportGenerator() {
+  const { company } = useAuth();
   const [reportType, setReportType] = useState('general');
   const [dateRange, setDateRange] = useState('month');
   const [format, setFormat] = useState('pdf');
@@ -67,51 +70,15 @@ export default function ReportGenerator() {
         document.body.removeChild(link);
 
       } else {
-        // PDF Print Simulation
-        const printWindow = window.open('', '', 'height=800,width=1000');
-        if (printWindow) {
-          printWindow.document.write(`
-            <html>
-              <head>
-                <title>${filename}</title>
-                <style>
-                  body { font-family: 'Inter', sans-serif; padding: 20px; color: #1a1a1a; }
-                  h2 { text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 2px solid #000; padding-bottom: 10px; }
-                  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-                  th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-                  th { background-color: #f5f5f5; font-weight: bold; text-transform: uppercase; }
-                  .footer { margin-top: 40px; font-size: 10px; color: #666; text-align: center; }
-                </style>
-              </head>
-              <body>
-                <h2>SafeGuard Pro - ${reportName}</h2>
-                <p><strong>Gerado em:</strong> ${new Date().toLocaleString()}</p>
-                <p><strong>Período Selecionado:</strong> ${dateRange.toUpperCase()}</p>
-                <table>
-                  <thead>
-                    <tr>
-                      ${Object.keys(data[0]).map(k => `<th>${k}</th>`).join('')}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${data.map(row => `
-                      <tr>
-                        ${Object.values(row).map(val => `<td>${val === null || val === undefined ? '-' : String(val)}</td>`).join('')}
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-                <div class="footer">Documento processado informaticamente por SafeGuard Pro SaaS.</div>
-              </body>
-            </html>
-          `);
-          printWindow.document.close();
-          printWindow.focus();
-          setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-          }, 800);
-        }
+        // PDF Gen
+        await PDFBuilder.generateTableReport({
+          title: reportName,
+          columns: Object.keys(data[0]),
+          data: data.map(row => Object.values(row).map(val => val === null || val === undefined ? '-' : String(val))),
+          companyName: company?.name,
+          logoUrl: company?.logo_url,
+          watermarkUrl: company?.watermark_url
+        });
       }
     } catch (error) {
       console.error(error);
