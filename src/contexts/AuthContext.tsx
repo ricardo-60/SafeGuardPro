@@ -32,6 +32,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         let mounted = true;
 
+        const initializeAuth = async () => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) throw error;
+
+                if (session?.user) {
+                    if (mounted) setUser(session.user);
+                    await fetchTenant(session.user.id);
+                } else {
+                    if (mounted) {
+                        setUser(null);
+                        setCompany(null);
+                        setRole(null);
+                        setLoading(false);
+                    }
+                }
+            } catch (err) {
+                console.error("Error getting session:", err);
+                if (mounted) setLoading(false);
+            }
+        };
+
+        initializeAuth();
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (!mounted) return;
 
@@ -42,21 +66,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(null);
                 setCompany(null);
                 setRole(null);
-                if (mounted) setLoading(false);
+                setLoading(false);
             }
         });
 
-        // Safe-guard para caso o evento INITIAL_SESSION atrase ou bloqueie
-        const timeout = setTimeout(() => {
-            if (mounted && loading) {
-                console.warn('Supabase Auth timeout. Resolving blindly to avoid infinite spinner.');
-                setLoading(false);
-            }
-        }, 3000);
-
         return () => {
             mounted = false;
-            clearTimeout(timeout);
             subscription.unsubscribe();
         };
     }, []);
