@@ -32,73 +32,81 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         let mounted = true;
 
-        const initializeAuth = async () => {
+        const fetchTenantData = async (userId: string) => {
             try {
+                const { data } = await supabase
+                    .from('user_roles')
+                    .select('role, company_id, companies(id, name, logo_url, watermark_url)')
+                    .eq('user_id', userId)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (mounted) {
+                    if (data) {
+                        setRole(data.role);
+                        setCompany(data.companies as unknown as Company);
+                    } else {
+                        setRole(null);
+                        setCompany(null);
+                    }
+                }
+            } catch (err) {
+                console.error("Tenant fetch error", err);
+            }
+        };
+
+        const initSession = async () => {
+            try {
+                if (mounted) setLoading(true);
                 const { data: { session }, error } = await supabase.auth.getSession();
-                if (error) throw error;
+
+                if (error) {
+                    console.error("Auth verification error:", error);
+                    return;
+                }
 
                 if (session?.user) {
                     if (mounted) setUser(session.user);
-                    await fetchTenant(session.user.id);
+                    await fetchTenantData(session.user.id);
                 } else {
                     if (mounted) {
                         setUser(null);
                         setCompany(null);
                         setRole(null);
-                        setLoading(false);
                     }
                 }
             } catch (err) {
-                console.error("Error getting session:", err);
+                console.error("Session crash:", err);
+            } finally {
                 if (mounted) setLoading(false);
             }
         };
 
-        initializeAuth();
+        initSession();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (!mounted) return;
 
-            if (session?.user) {
-                setUser(session.user);
-                await fetchTenant(session.user.id);
-            } else {
+            if (event === 'SIGNED_OUT' || !session) {
                 setUser(null);
                 setCompany(null);
                 setRole(null);
                 setLoading(false);
+            } else if (event === 'SIGNED_IN') {
+                setUser(session.user);
+                await fetchTenantData(session.user.id);
+                if (mounted) setLoading(false);
+            } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                // Do not trigger a full loading mask for silent refreshes
+                setUser(session.user);
             }
         });
 
         return () => {
             mounted = false;
-            subscription.unsubscribe();
+            authListener.subscription.unsubscribe();
         };
     }, []);
-
-    const fetchTenant = async (userId: string) => {
-        try {
-            // Fetch user role and company
-            const { data: roleData, error: roleError } = await supabase
-                .from('user_roles')
-                .select('role, company_id, companies(id, name, logo_url, watermark_url)')
-                .eq('user_id', userId)
-                .limit(1)
-                .maybeSingle();
-
-            if (roleData) {
-                setRole(roleData.role);
-                setCompany(roleData.companies as unknown as Company);
-            } else {
-                setCompany(null);
-                setRole(null);
-            }
-        } catch (e) {
-            console.error('Error fetching tenant:', e);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     return (
         <AuthContext.Provider value={{ user, company, role, loading }}>
