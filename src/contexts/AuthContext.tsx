@@ -55,6 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         };
 
+        const safetyFallback = setTimeout(() => {
+            if (mounted) {
+                console.warn("[Auth] Timeout safety hit");
+                setLoading(false);
+            }
+        }, 5000);
+
         const initSession = async () => {
             try {
                 if (mounted) setLoading(true);
@@ -78,7 +85,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } catch (err) {
                 console.error("Session crash:", err);
             } finally {
-                if (mounted) setLoading(false);
+                if (mounted) {
+                    setLoading(false);
+                    clearTimeout(safetyFallback);
+                }
             }
         };
 
@@ -104,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return () => {
             mounted = false;
+            clearTimeout(safetyFallback);
             authListener.subscription.unsubscribe();
         };
     }, []);
