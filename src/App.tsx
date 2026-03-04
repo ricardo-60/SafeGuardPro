@@ -14,6 +14,7 @@ import FinanceDashboard from './components/Finance/FinanceDashboard';
 import VehicleList from './components/Vehicles/VehicleList';
 import ReportGenerator from './components/Reports/ReportGenerator';
 import UserManagement from './components/Users/UserManagement';
+import CompanySettings from './components/Company/CompanySettings';
 import { Login } from './components/Login';
 import { Loader2 } from 'lucide-react';
 

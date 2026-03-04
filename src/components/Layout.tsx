@@ -13,13 +13,15 @@ import {
   Menu,
   X,
   LogOut,
-  Bell
+  Bell,
+  Building2
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,17 +39,16 @@ const navItems = [
   { title: 'Viaturas', icon: Truck, path: '/viaturas' },
   { title: 'Relatórios', icon: FileText, path: '/relatorios' },
   { title: 'Utilizadores', icon: Users, path: '/usuarios' },
+  { title: 'Configurações', icon: Building2, path: '/empresa', adminOnly: true },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const { user, role } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
+    // user state is now managed by AuthContext
   }, []);
 
   const handleLogout = async () => {
@@ -82,7 +83,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 py-6 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.filter(item => !item.adminOnly || role === 'admin').map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
