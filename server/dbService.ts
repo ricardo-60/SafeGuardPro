@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
 import { supabaseAdmin } from './supabaseAdmin';
 
-const db = new Database('safeguard.db');
+const dbPath = process.env.DB_PATH || 'safeguard.db';
+const db = new Database(dbPath);
 
 const useSupabase = !!(process.env.VITE_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 

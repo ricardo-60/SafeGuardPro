@@ -8,38 +8,49 @@ import {
   Calendar,
   AlertTriangle,
   DollarSign,
-  Truck,
   FileText,
   Menu,
   X,
   LogOut,
   Bell,
-  Building2
+  Building2,
+  Clock,
+  TrendingUp,
+  Truck,
+  ScanLine,
+  History
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import HealthStatus from './HealthStatus';
+import PanicButton from './PanicButton';
+
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 const navItems = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/' },
-  { title: 'RH / Vigilantes', icon: Users, path: '/rh' },
-  { title: 'Armas e Munições', icon: Shield, path: '/armas' },
-  { title: 'Equipamentos', icon: Package, path: '/equipamentos' },
-  { title: 'Postos', icon: MapPin, path: '/postos' },
-  { title: 'Escalas', icon: Calendar, path: '/escalas' },
-  { title: 'Ocorrências', icon: AlertTriangle, path: '/ocorrencias' },
-  { title: 'Financeiro', icon: DollarSign, path: '/financeiro' },
-  { title: 'Viaturas', icon: Truck, path: '/viaturas' },
-  { title: 'Relatórios', icon: FileText, path: '/relatorios' },
-  { title: 'Utilizadores', icon: Users, path: '/usuarios' },
-  { title: 'Configurações', icon: Building2, path: '/empresa', adminOnly: true },
+  { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
+  { title: 'BI Executivo', icon: TrendingUp, path: '/dashboard/executivo', roles: ['ADMIN', 'OPERATOR'] },
+  { title: 'RH / Vigilantes', icon: Users, path: '/dashboard/rh', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
+  { title: 'Gestão de Frota', icon: Truck, path: '/dashboard/frota', roles: ['ADMIN', 'OPERATOR'] },
+  { title: 'Kardex Tático', icon: ScanLine, path: '/dashboard/ativos-taticos', roles: ['ADMIN', 'OPERATOR'] },
+  { title: 'Armas e Munições', icon: Shield, path: '/dashboard/armas', roles: ['ADMIN', 'OPERATOR'] },
+  { title: 'Equipamentos', icon: Package, path: '/dashboard/equipamentos', roles: ['ADMIN', 'OPERATOR'] },
+  { title: 'Postos', icon: MapPin, path: '/dashboard/postos', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
+  { title: 'Escalas', icon: Calendar, path: '/dashboard/escalas', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
+  { title: 'Assiduidade', icon: Clock, path: '/dashboard/assiduidade', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
+  { title: 'Ocorrências', icon: AlertTriangle, path: '/dashboard/ocorrencias', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
+  { title: 'Folha Pagamento', icon: DollarSign, path: '/dashboard/folha-pagamento', roles: ['ADMIN', 'OPERATOR'] },
+  { title: 'Auditoria', icon: History, path: '/dashboard/audit', roles: ['ADMIN'] },
+  { title: 'Utilizadores', icon: Users, path: '/dashboard/usuarios', roles: ['ADMIN'] },
+  { title: 'Definições', icon: Building2, path: '/dashboard/configuracoes', roles: ['ADMIN'] },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -83,7 +94,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 py-6 overflow-y-auto">
-          {navItems.filter(item => !item.adminOnly || role === 'admin').map((item) => {
+          {navItems.filter(item => !item.roles || (role && item.roles.includes(role))).map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -149,6 +160,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
+        <HealthStatus />
         <div className="flex-1 overflow-y-auto p-8">
           <AnimatePresence mode="wait">
             <motion.div
@@ -162,6 +174,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </motion.div>
           </AnimatePresence>
         </div>
+        <PanicButton />
       </main>
     </div>
   );
