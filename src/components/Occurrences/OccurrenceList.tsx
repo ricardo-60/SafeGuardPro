@@ -4,6 +4,8 @@ import { api } from '../../lib/api';
 import { Occurrence, Post, Vigilante } from '../../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '../../lib/utils';
+
 
 export default function OccurrenceList() {
   const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
@@ -14,11 +16,19 @@ export default function OccurrenceList() {
     type: '',
     post_id: '',
     vigilante_id: '',
-    description: ''
+    description: '',
+    priority: 'medium' as Occurrence['priority']
   });
+  const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null);
 
   useEffect(() => {
     loadData();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        (err) => console.warn('GPS Error:', err)
+      );
+    }
   }, []);
 
   const loadData = async () => {
@@ -34,14 +44,28 @@ export default function OccurrenceList() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Refresh coords just before saving if possible
+    let finalCoords = coords;
+    if (navigator.geolocation) {
+      const pos = await new Promise<GeolocationPosition | null>((resolve) => {
+        navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), { timeout: 3000 });
+      });
+      if (pos) finalCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    }
+
     await api.createOccurrence({
       type: formData.type,
       post_id: parseInt(formData.post_id),
       vigilante_id: parseInt(formData.vigilante_id),
-      description: formData.description
+      description: formData.description,
+      priority: formData.priority,
+      latitude: finalCoords?.lat,
+      longitude: finalCoords?.lng,
+      date_time: new Date().toISOString()
     });
     setIsModalOpen(false);
-    setFormData({ type: '', post_id: '', vigilante_id: '', description: '' });
+    setFormData({ type: '', post_id: '', vigilante_id: '', description: '', priority: 'medium' });
     loadData();
   };
 
@@ -49,7 +73,7 @@ export default function OccurrenceList() {
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold uppercase tracking-tighter">Livro de Ocorrências Digital</h2>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="px-6 py-2 bg-brand-primary text-brand-bg font-bold text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(242,125,38,1)]"
         >
@@ -60,8 +84,13 @@ export default function OccurrenceList() {
       <div className="space-y-6">
         {occurrences.map((occ) => (
           <div key={occ.id} className="card-brutalist bg-white relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-1 h-full bg-brand-accent" />
-            
+            <div className={cn(
+              "absolute top-0 left-0 w-1.5 h-full",
+              occ.priority === 'critical' ? "bg-rose-600 animate-pulse" :
+                occ.priority === 'high' ? "bg-rose-500" :
+                  occ.priority === 'medium' ? "bg-amber-500" : "bg-emerald-500"
+            )} />
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div className="flex items-center space-x-4">
                 <div className="p-2 bg-brand-bg rounded">
@@ -138,22 +167,22 @@ export default function OccurrenceList() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-bold uppercase mb-1">Tipo de Ocorrência</label>
-                <input 
+                <input
                   required
                   placeholder="Ex: Assalto, Intrusão, Falha de Equipamento"
                   className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent"
                   value={formData.type}
-                  onChange={e => setFormData({...formData, type: e.target.value})}
+                  onChange={e => setFormData({ ...formData, type: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1">Posto</label>
-                  <select 
+                  <select
                     required
                     className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent bg-white"
                     value={formData.post_id}
-                    onChange={e => setFormData({...formData, post_id: e.target.value})}
+                    onChange={e => setFormData({ ...formData, post_id: e.target.value })}
                   >
                     <option value="">Selecionar Posto</option>
                     {posts.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -161,36 +190,57 @@ export default function OccurrenceList() {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1">Vigilante</label>
-                  <select 
+                  <select
                     required
                     className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent bg-white"
                     value={formData.vigilante_id}
-                    onChange={e => setFormData({...formData, vigilante_id: e.target.value})}
+                    onChange={e => setFormData({ ...formData, vigilante_id: e.target.value })}
                   >
                     <option value="">Selecionar Vigilante</option>
                     {vigilantes.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                   </select>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase mb-1">Prioridade</label>
+                  <select
+                    className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent bg-white"
+                    value={formData.priority}
+                    onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
+                  >
+                    <option value="low">Baixa</option>
+                    <option value="medium">Média</option>
+                    <option value="high">Alta</option>
+                    <option value="critical">Crítica</option>
+                  </select>
+                </div>
+                <div className="flex flex-col justify-end">
+                  <div className="text-[10px] items-center flex font-bold uppercase opacity-60 mb-2">
+                    <MapPin size={12} className="mr-1" />
+                    {coords ? "GPS Localizado" : "GPS Pendente"}
+                  </div>
+                </div>
+              </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase mb-1">Descrição dos Fatos</label>
-                <textarea 
+                <textarea
                   required
                   rows={4}
                   className="w-full p-2 border border-brand-primary/20 outline-none focus:border-brand-accent"
                   value={formData.description}
-                  onChange={e => setFormData({...formData, description: e.target.value})}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
               <div className="pt-4 flex justify-end space-x-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-6 py-2 font-bold text-xs uppercase tracking-widest hover:underline"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="px-8 py-2 bg-brand-primary text-brand-bg font-bold text-xs uppercase tracking-widest hover:bg-brand-accent hover:text-brand-primary transition-all"
                 >

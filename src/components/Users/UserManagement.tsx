@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, User as UserIcon, Shield, Mail, Calendar, Trash2, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { api } from '../../lib/api';
-import { User } from '../../types';
+import { User, UserRole } from '../../types';
+import { cn } from '../../lib/utils';
+import { useAuth } from '../../contexts/AuthContext';
+import { auditService } from '../../lib/auditService';
 
 export default function UserManagement() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'user' });
+    const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'VIGILANTE' as UserRole });
     const [submitting, setSubmitting] = useState(false);
+    const { user: currentUser } = useAuth();
 
     useEffect(() => {
         loadUsers();
@@ -33,9 +37,12 @@ export default function UserManagement() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            await api.createUser(formData);
+            const newUser = await api.createUser(formData);
+            if (newUser && currentUser) {
+                auditService.log(currentUser.id, currentUser.email || 'Admin', 'CREATE', 'UserAccount', newUser.id.toString(), null, formData);
+            }
             setIsModalOpen(false);
-            setFormData({ name: '', email: '', password: '', role: 'user' });
+            setFormData({ name: '', email: '', password: '', role: 'VIGILANTE' });
             loadUsers();
         } catch (error) {
             console.error('Error creating user:', error);
@@ -45,10 +52,14 @@ export default function UserManagement() {
         }
     };
 
-    const handleDelete = async (id: number | string) => {
-        if (confirm('Tem certeza que deseja remover este utilizador?')) {
+    const handleDelete = async (userId: number | string) => {
+        if (confirm('Tem certeza que deseja remover este utilizador? Esta ação será registada na trilha de auditoria.')) {
             try {
-                await api.deleteUser(id);
+                const targetUser = users.find(u => u.id === userId);
+                await api.deleteUser(userId);
+                if (currentUser && targetUser) {
+                    auditService.log(currentUser.id, currentUser.email || 'Admin', 'DELETE', 'UserAccount', userId.toString(), targetUser, null);
+                }
                 loadUsers();
             } catch (error) {
                 console.error('Error deleting user:', error);
@@ -140,12 +151,15 @@ export default function UserManagement() {
                                             </div>
                                         </td>
                                         <td className="py-3 px-4">
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
-                                                    ? 'bg-purple-100 text-purple-700'
-                                                    : 'bg-emerald-100 text-emerald-700'
-                                                }`}>
-                                                {user.role === 'admin' ? <Shield size={12} /> : <UserIcon size={12} />}
-                                                {user.role === 'admin' ? 'Administrador' : 'Operador'}
+                                            <span className={cn(
+                                                "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight border",
+                                                user.role === 'ADMIN' ? 'bg-brand-primary text-brand-bg border-brand-primary' :
+                                                    user.role === 'OPERATOR' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                        user.role === 'SUPERVISOR' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                            'bg-brand-bg text-brand-primary border-brand-primary/20'
+                                            )}>
+                                                {user.role === 'ADMIN' ? <Shield size={10} /> : <UserIcon size={10} />}
+                                                {user.role}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4">
@@ -229,11 +243,13 @@ export default function UserManagement() {
                                     <label className="block text-sm font-medium text-brand-primary/80 mb-1">Nível de Acesso</label>
                                     <select
                                         value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                        className="w-full px-3 py-2 bg-brand-bg border border-brand-primary/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                                        onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                                        className="w-full px-3 py-2 bg-brand-bg border border-brand-primary/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-accent/50 text-xs font-bold uppercase"
                                     >
-                                        <option value="user">Operador</option>
-                                        <option value="admin">Administrador</option>
+                                        <option value="ADMIN">Administrador (Total)</option>
+                                        <option value="OPERATOR">Operador (RH/Frota)</option>
+                                        <option value="SUPERVISOR">Supervisor (Relatórios)</option>
+                                        <option value="VIGILANTE">Vigilante (Limitado)</option>
                                     </select>
                                 </div>
 

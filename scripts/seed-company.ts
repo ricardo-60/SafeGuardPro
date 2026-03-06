@@ -27,7 +27,7 @@ async function seedCompany() {
 
     // Get Admin user id
     const { data: usersData } = await supabase.auth.admin.listUsers();
-    const adminUser = usersData.users.find(u => u.email === 'admin@safeguard.com');
+    const adminUser = usersData?.users?.find((u: any) => u.email === 'admin@safeguard.com');
     if (!adminUser) {
         console.error("Admin user not found. Unable to create user_role.");
         return;

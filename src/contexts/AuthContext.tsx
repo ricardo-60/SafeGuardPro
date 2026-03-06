@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { UserRole, User } from '../types';
+import { api } from '../lib/api';
 
 type Company = {
     id: string;
@@ -10,23 +12,28 @@ type Company = {
 };
 
 type AuthContextType = {
-    user: User | null;
+    user: SupabaseUser | null;
+    userData: User | null;
     company: Company | null;
-    role: string | null;
+    role: UserRole | null;
     loading: boolean;
+    hasRole: (roles: UserRole[]) => boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
+    userData: null,
     company: null,
     role: null,
     loading: true,
+    hasRole: () => false
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<SupabaseUser | null>(null);
+    const [userData, setUserData] = useState<User | null>(null);
     const [company, setCompany] = useState<Company | null>(null);
-    const [role, setRole] = useState<string | null>(null);
+    const [role, setRole] = useState<UserRole | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -43,8 +50,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 if (mounted) {
                     if (data) {
-                        setRole(data.role);
+                        setRole(data.role as UserRole);
                         setCompany(data.companies as unknown as Company);
+
+                        // Capture session metadata for security
+                        api.updateUserSecurity(userId, {
+                            last_login: new Date().toISOString(),
+                            last_device: navigator.userAgent
+                        });
                     } else {
                         setRole(null);
                         setCompany(null);
@@ -119,8 +132,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, []);
 
+    const hasRole = (roles: UserRole[]) => {
+        if (!role) return false;
+        return roles.includes(role);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, company, role, loading }}>
+        <AuthContext.Provider value={{ user, userData, company, role, loading, hasRole }}>
             {children}
         </AuthContext.Provider>
     );

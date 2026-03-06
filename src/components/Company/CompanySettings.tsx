@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { uploadCompanyAsset } from '../../lib/storage';
 import { Loader2, Save, Building2, Image as ImageIcon } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export default function CompanySettings() {
     const { company, role } = useAuth();

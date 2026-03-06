@@ -301,9 +301,11 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, "dist")));
+    // In electron production, the server is inside dist-server, so the frontend dist is ../dist
+    const distPath = process.env.DB_PATH ? path.join(__dirname, '..', 'dist') : path.join(__dirname, "dist");
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
