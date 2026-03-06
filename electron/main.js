@@ -1,8 +1,13 @@
 import { app, BrowserWindow } from 'electron';
+app.disableHardwareAcceleration();
+
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
-import fetch from 'node-fetch'; // Electron already has native fetch or we can just ignore it and use standard Node http
+// O Node 20.x já possui fetch nativo, eliminando a necessidade de node-fetch
+// Se necessário para compatibilidade com versões anteriores de pacotes:
+// const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

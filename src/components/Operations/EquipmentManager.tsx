@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Package, User, Calendar, CheckCircle, Clock, Shield, Signature, Plus, Search, X } from 'lucide-react';
 import { api } from '../../lib/api';
-import { EquipmentAssignment, Vigilante } from '../../types';
+import { EquipmentAssignment, Vigilante, Equipment } from '../../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
+import { QRScanner } from '../Common/QRScanner';
+
 
 export default function EquipmentManager() {
     const [assignments, setAssignments] = useState<EquipmentAssignment[]>([]);
@@ -16,6 +18,7 @@ export default function EquipmentManager() {
         equipment_id: '',
         status: 'assigned' as EquipmentAssignment['status']
     });
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -147,15 +150,35 @@ export default function EquipmentManager() {
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold uppercase mb-1">ID / Nº de Série</label>
-                                    <input
-                                        required
-                                        placeholder="Ex: SN-99202"
-                                        className="w-full p-3 border-2 border-brand-primary outline-none focus:border-brand-accent text-sm"
-                                        value={formData.equipment_id}
-                                        onChange={e => setFormData({ ...formData, equipment_id: e.target.value })}
-                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            required
+                                            placeholder="Ex: SN-99202"
+                                            className="flex-1 p-3 border-2 border-brand-primary outline-none focus:border-brand-accent text-sm"
+                                            value={formData.equipment_id}
+                                            onChange={e => setFormData({ ...formData, equipment_id: e.target.value })}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsScannerOpen(true)}
+                                            className="p-3 bg-brand-primary text-brand-bg hover:bg-brand-accent transition-colors"
+                                            title="Scan QR Code"
+                                        >
+                                            <Search size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+
+                            {isScannerOpen && (
+                                <QRScanner
+                                    onScanSuccess={(code) => {
+                                        setFormData({ ...formData, equipment_id: code });
+                                        setIsScannerOpen(false);
+                                    }}
+                                    onClose={() => setIsScannerOpen(false)}
+                                />
+                            )}
 
                             <div className="bg-brand-bg p-4 border-2 border-brand-primary border-dashed">
                                 <p className="text-[10px] font-bold uppercase mb-2 text-brand-primary/60">Termo de Responsabilidade</p>
