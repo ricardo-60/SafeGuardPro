@@ -4,9 +4,8 @@ app.disableHardwareAcceleration();
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
-// O Node 20.x já possui fetch nativo, eliminando a necessidade de node-fetch
-// Se necessário para compatibilidade com versões anteriores de pacotes:
-// const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+import axios from 'axios';
+
 
 
 const __filename = fileURLToPath(import.meta.url);
