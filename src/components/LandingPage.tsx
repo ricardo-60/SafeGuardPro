@@ -83,6 +83,12 @@ export default function LandingPage() {
                         <a href="#offline" className="hover:text-blue-500 transition-colors">Offline-First</a>
                         <a href="#faq" className="hover:text-blue-500 transition-colors">FAQ</a>
                     </div>
+                    <div className="hidden lg:flex items-center space-x-6 text-xs font-black uppercase tracking-widest text-blue-500">
+                        <div className="flex items-center space-x-2">
+                            <Phone size={14} />
+                            <span>923 658 211</span>
+                        </div>
+                    </div>
                     <Link
                         to="/dashboard"
                         className="px-6 py-2.5 bg-blue-600 text-white font-black text-xs uppercase tracking-widest rounded-lg hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-600/20"
@@ -283,7 +289,7 @@ export default function LandingPage() {
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-10">
                                 <div className="flex items-center space-x-3">
                                     <Mail className="text-blue-500" size={20} />
-                                    <span className="text-sm font-bold opacity-80">contacto@safeguardpro.com</span>
+                                    <span className="text-sm font-bold opacity-80">geral@hr-tecnologia.com</span>
                                 </div>
                                 <div className="flex items-center space-x-3">
                                     <Phone className="text-blue-500" size={20} />

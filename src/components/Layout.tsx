@@ -178,7 +178,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           </button>
           {isSidebarOpen && (
             <p className="text-[9px] text-brand-bg/25 uppercase font-bold tracking-widest text-center pt-1">
-              Produzido por HR-TECNOLOGIA
+              Desenvolvido por HR-TECNOLOGIA
             </p>
           )}
         </div>

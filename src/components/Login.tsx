@@ -138,8 +138,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
 
-        <p className="text-center text-zinc-600 text-xs mt-8">
-          &copy; 2024 SafeGuard Pro. Todos os direitos reservados.
+        <p className="text-center text-zinc-600 text-[10px] uppercase font-black tracking-widest mt-8">
+          &copy; 2026 SafeGuard Pro. Desenvolvido por <span className="text-emerald-500">HR-TECNOLOGIA</span>
         </p>
       </motion.div>
     </div>
