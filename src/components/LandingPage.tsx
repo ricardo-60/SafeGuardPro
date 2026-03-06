@@ -289,6 +289,10 @@ export default function LandingPage() {
                                     <Phone className="text-blue-500" size={20} />
                                     <span className="text-sm font-bold opacity-80">+244 923 658 211</span>
                                 </div>
+                                <div className="flex items-center space-x-3 pt-2 border-t border-white/5 w-full">
+                                    <span className="text-[10px] font-black uppercase text-blue-500">IBAN:</span>
+                                    <span className="text-xs font-mono font-bold opacity-90">AO06-0040-0000-1694-3648-10168</span>
+                                </div>
                             </div>
                         </div>
 
