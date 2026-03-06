@@ -119,8 +119,13 @@ export const api = {
 
   // Equipment (Legacy - will be superseded by Tactical Assets/Kardex)
   getEquipment: async () => cachedGet('equipment_cache', async () => (await supabase.from('equipment').select('*')).data || []),
+  createEquipment: async (data: Partial<Equipment>) => offlineMutation('insert', 'equipment', data, () => supabase.from('equipment').insert(data).select().single() as any),
+  updateEquipment: async (id: number, data: Partial<Equipment>) => offlineMutation('update', 'equipment', { id, ...data }, () => supabase.from('equipment').update(data).eq('id', id).select().single() as any),
   deleteEquipment: async (id: number) => offlineMutation('delete', 'equipment', { id }, () => supabase.from('equipment').delete().eq('id', id) as any),
 
+  getVehicles: async (): Promise<Vehicle[]> => cachedGet('vehicles_cache', async () => (await supabase.from('vehicles').select('*')).data || []),
+  createVehicle: async (data: Partial<Vehicle>) => offlineMutation('insert', 'vehicles', data, () => supabase.from('vehicles').insert(data).select().single() as any),
+  updateVehicle: async (id: number, data: Partial<Vehicle>) => offlineMutation('update', 'vehicles', { id, ...data }, () => supabase.from('vehicles').update(data).eq('id', id).select().single() as any),
   deleteVehicle: async (id: number) => offlineMutation('delete', 'vehicles', { id }, () => supabase.from('vehicles').delete().eq('id', id) as any),
 
   // Scales
@@ -163,9 +168,6 @@ export const api = {
   createPayrollReport: async (data: Partial<PayrollReport>) => offlineMutation('insert', 'payroll_reports', data, () => supabase.from('payroll_reports').insert(data).select().single() as any),
 
   // Logistics & Fleet
-  getVehicles: async (): Promise<Vehicle[]> => cachedGet('vehicles_cache', async () => (await supabase.from('vehicles').select('*')).data || []),
-  updateVehicle: async (id: number, data: Partial<Vehicle>) => offlineMutation('update', 'vehicles', { id, ...data }, () => supabase.from('vehicles').update(data).eq('id', id).select().single() as any),
-
   getVehicleMissions: async (): Promise<VehicleMission[]> => cachedGet('missions_cache', async () => (await supabase.from('vehicle_missions').select('*, vehicles(plate), vigilantes(name)')).data || []),
   createVehicleMission: async (data: Partial<VehicleMission>) => offlineMutation('insert', 'vehicle_missions', data, () => supabase.from('vehicle_missions').insert(data).select().single() as any),
 

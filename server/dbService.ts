@@ -26,13 +26,13 @@ export const dbService = {
         monthly_expense: expenseData?.reduce((acc, t) => acc + t.amount, 0) || 0
       };
     } else {
-      const vigilantesCount = db.prepare("SELECT COUNT(*) as count FROM vigilantes WHERE status = 'active'").get().count;
-      const weaponsCount = db.prepare("SELECT COUNT(*) as count FROM weapons WHERE status = 'in_use'").get().count;
-      const postsCount = db.prepare("SELECT COUNT(*) as count FROM posts").get().count;
-      const occurrencesCount = db.prepare("SELECT COUNT(*) as count FROM occurrences WHERE date_time >= date('now', '-30 days')").get().count;
+      const vigilantesCount = (db.prepare("SELECT COUNT(*) as count FROM vigilantes WHERE status = 'active'").get() as { count: number }).count;
+      const weaponsCount = (db.prepare("SELECT COUNT(*) as count FROM weapons WHERE status = 'in_use'").get() as { count: number }).count;
+      const postsCount = (db.prepare("SELECT COUNT(*) as count FROM posts").get() as { count: number }).count;
+      const occurrencesCount = (db.prepare("SELECT COUNT(*) as count FROM occurrences WHERE date_time >= date('now', '-30 days')").get() as { count: number }).count;
 
-      const income = db.prepare("SELECT SUM(amount) as total FROM transactions WHERE type = 'income' AND date >= date('now', 'start of month')").get().total || 0;
-      const expense = db.prepare("SELECT SUM(amount) as total FROM transactions WHERE type = 'expense' AND date >= date('now', 'start of month')").get().total || 0;
+      const income = (db.prepare("SELECT SUM(amount) as total FROM transactions WHERE type = 'income' AND date >= date('now', 'start of month')").get() as { total: number }).total || 0;
+      const expense = (db.prepare("SELECT SUM(amount) as total FROM transactions WHERE type = 'expense' AND date >= date('now', 'start of month')").get() as { total: number }).total || 0;
 
       return {
         vigilantes: vigilantesCount,

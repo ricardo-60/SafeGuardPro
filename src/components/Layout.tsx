@@ -53,7 +53,7 @@ const navItems = [
   { title: 'Definições', icon: Building2, path: '/dashboard/configuracoes', roles: ['ADMIN'] },
 ];
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, role } = useAuth();
   const location = useLocation();

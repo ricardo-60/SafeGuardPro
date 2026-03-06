@@ -19,10 +19,10 @@ async function checkDB() {
     console.log("Verificando o utilizador admin...");
     const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
 
-    if (usersError) {
-        console.error("Erro ao listar users:", usersError.message);
+    if (usersError || !usersData?.users) {
+        console.error("Erro ao listar users:", usersError?.message);
     } else {
-        const admin = usersData.users.find(u => u.email === 'admin@safeguard.com');
+        const admin = usersData.users.find((u: any) => u.email === 'admin@safeguard.com');
         if (admin) {
             console.log("Admin encontrado:", admin.id, admin.email);
             const { data: adminRoleData } = await supabase.from('user_roles').select('*').eq('user_id', admin.id);
