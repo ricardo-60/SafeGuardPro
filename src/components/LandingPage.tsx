@@ -287,7 +287,7 @@ export default function LandingPage() {
                                 </div>
                                 <div className="flex items-center space-x-3">
                                     <Phone className="text-blue-500" size={20} />
-                                    <span className="text-sm font-bold opacity-80">+351 900 000 000</span>
+                                    <span className="text-sm font-bold opacity-80">+244 923 658 211</span>
                                 </div>
                             </div>
                         </div>
@@ -320,7 +320,7 @@ export default function LandingPage() {
                             <span className="text-sm font-black tracking-tighter uppercase">SafeGuardPro</span>
                         </div>
                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">
-                            &copy; 2026 SafeGuard Pro. Liderança em Gestão de Segurança.
+                            &copy; 2026 SafeGuard Pro. Produzido por <span className="text-blue-500">HR-TECNOLOGIA</span>.
                         </p>
                     </div>
                 </div>
@@ -328,7 +328,7 @@ export default function LandingPage() {
 
             {/* WhatsApp Floating Button */}
             <a
-                href="https://wa.me/351900000000"
+                href="https://wa.me/244923658211"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="fixed bottom-8 right-8 z-[60] bg-green-500 p-4 rounded-full shadow-2xl hover:bg-green-400 hover:scale-110 transition-all active:scale-95 group"

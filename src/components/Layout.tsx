@@ -35,23 +35,56 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const navItems = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
-  { title: 'BI Executivo', icon: TrendingUp, path: '/dashboard/executivo', roles: ['ADMIN', 'OPERATOR'] },
-  { title: 'RH / Vigilantes', icon: Users, path: '/dashboard/rh', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
-  { title: 'Gestão de Frota', icon: Truck, path: '/dashboard/frota', roles: ['ADMIN', 'OPERATOR'] },
-  { title: 'Kardex Tático', icon: ScanLine, path: '/dashboard/ativos-taticos', roles: ['ADMIN', 'OPERATOR'] },
-  { title: 'Armas e Munições', icon: Shield, path: '/dashboard/armas', roles: ['ADMIN', 'OPERATOR'] },
-  { title: 'Equipamentos', icon: Package, path: '/dashboard/equipamentos', roles: ['ADMIN', 'OPERATOR'] },
-  { title: 'Postos', icon: MapPin, path: '/dashboard/postos', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
-  { title: 'Escalas', icon: Calendar, path: '/dashboard/escalas', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
-  { title: 'Assiduidade', icon: Clock, path: '/dashboard/assiduidade', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
-  { title: 'Ocorrências', icon: AlertTriangle, path: '/dashboard/ocorrencias', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
-  { title: 'Folha Pagamento', icon: DollarSign, path: '/dashboard/folha-pagamento', roles: ['ADMIN', 'OPERATOR'] },
-  { title: 'Auditoria', icon: History, path: '/dashboard/audit', roles: ['ADMIN'] },
-  { title: 'Utilizadores', icon: Users, path: '/dashboard/usuarios', roles: ['ADMIN'] },
-  { title: 'Definições', icon: Building2, path: '/dashboard/configuracoes', roles: ['ADMIN'] },
+const navGroups = [
+  {
+    label: null,
+    items: [
+      { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
+    ]
+  },
+  {
+    label: 'Recursos Humanos',
+    items: [
+      { title: 'Efetivos / RH', icon: Users, path: '/dashboard/rh', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
+      { title: 'Escalas', icon: Calendar, path: '/dashboard/escalas', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
+      { title: 'Assiduidade', icon: Clock, path: '/dashboard/assiduidade', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
+      { title: 'Folha Pagamento', icon: DollarSign, path: '/dashboard/folha-pagamento', roles: ['ADMIN', 'OPERATOR'] },
+    ]
+  },
+  {
+    label: 'Logística',
+    items: [
+      { title: 'Gestão de Frota', icon: Truck, path: '/dashboard/frota', roles: ['ADMIN', 'OPERATOR'] },
+      { title: 'Armas e Munições', icon: Shield, path: '/dashboard/armas', roles: ['ADMIN', 'OPERATOR'] },
+      { title: 'Kardex Tático', icon: ScanLine, path: '/dashboard/ativos-taticos', roles: ['ADMIN', 'OPERATOR'] },
+      { title: 'Equipamentos', icon: Package, path: '/dashboard/equipamentos', roles: ['ADMIN', 'OPERATOR'] },
+    ]
+  },
+  {
+    label: 'Portaria',
+    items: [
+      { title: 'Postos', icon: MapPin, path: '/dashboard/postos', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR'] },
+      { title: 'Ocorrências', icon: AlertTriangle, path: '/dashboard/ocorrencias', roles: ['ADMIN', 'OPERATOR', 'SUPERVISOR', 'VIGILANTE'] },
+    ]
+  },
+  {
+    label: 'Relatórios',
+    items: [
+      { title: 'BI Executivo', icon: TrendingUp, path: '/dashboard/executivo', roles: ['ADMIN', 'OPERATOR'] },
+      { title: 'Auditoria', icon: History, path: '/dashboard/audit', roles: ['ADMIN'] },
+    ]
+  },
+  {
+    label: 'Configurações',
+    items: [
+      { title: 'Utilizadores', icon: Users, path: '/dashboard/usuarios', roles: ['ADMIN'] },
+      { title: 'Definições', icon: Building2, path: '/dashboard/configuracoes', roles: ['ADMIN'] },
+    ]
+  },
 ];
+
+// flat list for header title lookup
+const navItems = navGroups.flatMap(g => g.items);
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -93,44 +126,61 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="flex-1 py-6 overflow-y-auto">
-          {navItems.filter(item => !item.roles || (role && item.roles.includes(role))).map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center px-6 py-3 transition-colors group relative",
-                  isActive ? "bg-brand-accent text-brand-primary" : "hover:bg-brand-bg/5"
-                )}
-              >
-                <item.icon size={20} className={cn(isActive ? "text-brand-primary" : "text-brand-bg/60 group-hover:text-brand-bg")} />
-                {isSidebarOpen && (
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="ml-4 font-medium text-sm"
+        <nav className="flex-1 py-4 overflow-y-auto">
+          {navGroups.map((group, gi) => (
+            <div key={gi} className="mb-2">
+              {group.label && isSidebarOpen && (
+                <p className="px-6 pt-4 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-brand-bg/30">
+                  {group.label}
+                </p>
+              )}
+              {group.label && !isSidebarOpen && gi > 0 && (
+                <div className="mx-4 my-2 border-t border-brand-bg/10" />
+              )}
+              {group.items.filter(item => !item.roles || (role && item.roles.includes(role))).map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      "flex items-center px-6 py-2.5 transition-colors group relative",
+                      isActive ? "bg-brand-accent text-brand-primary" : "hover:bg-brand-bg/5"
+                    )}
                   >
-                    {item.title}
-                  </motion.span>
-                )}
-                {!isSidebarOpen && isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-accent" />
-                )}
-              </Link>
-            );
-          })}
+                    <item.icon size={18} className={cn(isActive ? "text-brand-primary" : "text-brand-bg/60 group-hover:text-brand-bg")} />
+                    {isSidebarOpen && (
+                      <motion.span
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="ml-3 font-medium text-sm"
+                      >
+                        {item.title}
+                      </motion.span>
+                    )}
+                    {!isSidebarOpen && isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-accent" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
-        <div className="p-6 border-t border-brand-bg/10">
+        <div className="p-4 border-t border-brand-bg/10 space-y-3">
           <button
             onClick={handleLogout}
             className="flex items-center text-brand-bg/60 hover:text-brand-bg transition-colors w-full"
           >
-            <LogOut size={20} />
-            {isSidebarOpen && <span className="ml-4 text-sm font-medium">Sair</span>}
+            <LogOut size={18} />
+            {isSidebarOpen && <span className="ml-3 text-sm font-medium">Sair</span>}
           </button>
+          {isSidebarOpen && (
+            <p className="text-[9px] text-brand-bg/25 uppercase font-bold tracking-widest text-center pt-1">
+              Produzido por HR-TECNOLOGIA
+            </p>
+          )}
         </div>
       </aside>
 
