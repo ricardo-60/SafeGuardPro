@@ -34,18 +34,32 @@ export default function ExecutiveDashboard() {
         if (!stats) return;
         const headers = [['Métrica', 'Valor', 'Status']];
         const data = [
-            ['Total Vigilantes', stats.totalVigilantes, 'OK'],
+            ['Total Vigilantes', stats.totalVigilantes, 'CONTRATADO'],
             ['Documentos Vencidos', stats.expiredDocuments, stats.expiredDocuments > 0 ? 'CRÍTICO' : 'OK'],
             ['Alertas Geofencing (24h)', stats.offRadiusAlerts, stats.offRadiusAlerts > 5 ? 'AVISO' : 'OK'],
             ['Escalas Ativas', stats.activeScales, 'NORMAL'],
-            ['Total Payroll (AOA)', stats.totalPayrollAOA.toLocaleString() + ' Kz', 'CONTABILIZADO'],
-            ['Frota Resumo', `${stats.activeVehicles || 0} Ativas`, 'INFO'],
-            ['Ativos Táticos', `${stats.availableAssets || 0} Disponíveis`, 'KARDEX']
+            ['Investimento em Pessoal (AOA)', stats.totalPayrollAOA.toLocaleString() + ' Kz', 'CONTABILIZADO'],
+            ['Viaturas Operacionais', stats.activeVehicles, 'FROTA'],
+            ['Ativos Disponíveis', stats.availableAssets, 'KARDEX']
         ];
-        await reportHelpers.generatePDF('Relatório de Saúde Operacional', headers, data, 'SafeGuard_Exec_Status');
+
+        // Add Active Alerts to PDF
+        if (stats.alerts && stats.alerts.length > 0) {
+            data.push(['---', '---', '---']);
+            data.push(['ALERTAS ATIVOS', '', '']);
+            stats.alerts.forEach((a: any) => {
+                data.push([a.msg, '', a.type.toUpperCase()]);
+            });
+        }
+
+        await reportHelpers.generatePDF('Relatório de Saúde Operacional & BI', headers, data, 'SafeGuard_Executive_Report');
     };
 
-    if (loading) return <div className="p-8 text-center animate-pulse font-bold">Carregando BI...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="text-xl font-black uppercase tracking-[0.3em] animate-pulse">Processando Inteligência de Risco...</div>
+        </div>
+    );
 
     const chartData = [
         { name: 'Vencidos', value: stats.expiredDocuments },

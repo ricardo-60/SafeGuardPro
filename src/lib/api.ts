@@ -196,37 +196,70 @@ export const api = {
   // Executive Stats
   getDashboardStats: async () => {
     return cachedGet('dash_stats_cache', async () => {
-      const [attendance, vigilantes, scales, payroll, vehicles, assets] = await Promise.all([
+      const [attendance, vigilantes, scales, payroll, vehicles, assets, weapons] = await Promise.all([
         supabase.from('attendance').select('*'),
         supabase.from('vigilantes').select('*'),
         supabase.from('scales').select('*'),
         supabase.from('payroll_reports').select('*'),
         supabase.from('vehicles').select('*'),
-        supabase.from('tactical_assets').select('*')
+        supabase.from('tactical_assets').select('*'),
+        supabase.from('weapons').select('*')
       ]);
 
       const now = new Date();
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(now.getDate() + 30);
 
-      // Calculate Document Expiry Stats
-      const expiredDocs = (vigilantes.data || []).filter(v => {
+      // Detailed Compliance Alerts
+      const alerts: { msg: string, type: 'warning' | 'error' | 'info' }[] = [];
+
+      // Document Expiry Alerts
+      const expiredVigilantes = (vigilantes.data || []).filter(v => {
         const police = v.doc_police_expiry ? new Date(v.doc_police_expiry) < now : false;
         const psych = v.doc_psych_expiry ? new Date(v.doc_psych_expiry) < now : false;
+
+        if (police) alerts.push({ msg: `Cartão PN de ${v.name} expirado`, type: 'error' });
+        else if (v.doc_police_expiry && new Date(v.doc_police_expiry) < thirtyDaysFromNow) {
+          alerts.push({ msg: `Cartão PN de ${v.name} expira em breve`, type: 'warning' });
+        }
+
         return police || psych;
-      }).length;
+      });
+
+      // Weapon Expiry Alerts
+      (weapons.data || []).forEach(w => {
+        if (w.expiry_date && new Date(w.expiry_date) < now) {
+          alerts.push({ msg: `Licença da Arma ${w.serial_number} (${w.model}) expirada`, type: 'error' });
+        } else if (w.expiry_date && new Date(w.expiry_date) < thirtyDaysFromNow) {
+          alerts.push({ msg: `Licença da Arma ${w.serial_number} expira em breve`, type: 'warning' });
+        }
+      });
 
       // Attendance Stats (Last 24h)
       const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const recentAttendance = (attendance.data || []).filter(a => new Date(a.timestamp) > last24h);
       const offRadius = recentAttendance.filter(a => !a.is_within_radius).length;
 
+      if (offRadius > 0) {
+        alerts.push({ msg: `${offRadius} registros de presença fora do raio GPS (últimas 24h)`, type: 'warning' });
+      }
+
+      // Fleet Alerts
+      (vehicles.data || []).forEach(v => {
+        if (v.status === 'maintenance') {
+          alerts.push({ msg: `Viatura ${v.plate} em manutenção`, type: 'info' });
+        }
+      });
+
       return {
         totalVigilantes: vigilantes.data?.length || 0,
-        expiredDocuments: expiredDocs,
+        expiredDocuments: expiredVigilantes.length,
         offRadiusAlerts: offRadius,
         activeScales: scales.data?.filter(s => s.status === 'scheduled').length || 0,
         totalPayrollAOA: (payroll.data || []).reduce((acc, p) => acc + (p.net_salary || 0), 0),
         activeVehicles: (vehicles.data || []).filter(v => v.status === 'active').length,
-        availableAssets: (assets.data || []).filter(a => a.status === 'available').length
+        availableAssets: (assets.data || []).filter(a => a.status === 'available').length,
+        alerts: alerts.slice(0, 10) // Limit to 10 most relevant
       };
     });
   }

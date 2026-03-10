@@ -37,25 +37,45 @@ const data = [
 const COLORS = ['#141414', '#F27D26', '#E4E3E0', '#8E9299'];
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<any>({
     vigilantes: 0,
     weapons: 0,
     posts: 0,
     occurrences: 0,
     monthly_income: 0,
-    monthly_expense: 0
+    monthly_expense: 0,
+    alerts: []
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.getStats().then(setStats);
+    loadDashboardData();
   }, []);
 
+  const loadDashboardData = async () => {
+    try {
+      // Use getDashboardStats instead of getStats for more detailed data
+      const data = await api.getDashboardStats();
+      setStats(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const statCards = [
-    { title: 'Vigilantes Ativos', value: stats.totalVigilantes || stats.vigilantes || 0, icon: Users, trend: '+2.5%', isUp: true },
-    { title: 'Armas em Uso', value: stats.totalWeapons || stats.weapons || 0, icon: Shield, trend: '-1.2%', isUp: false },
-    { title: 'Postos Operacionais', value: stats.totalPosts || stats.posts || 0, icon: MapPin, trend: '+4.0%', isUp: true },
-    { title: 'Ocorrências (Mês)', value: stats.totalOccurrences || stats.occurrences || 0, icon: AlertTriangle, trend: '+12%', isUp: false },
+    { title: 'Vigilantes Ativos', value: stats.totalVigilantes || 0, icon: Users, trend: '+2.5%', isUp: true },
+    { title: 'Postos Operacionais', value: stats.activeScales || stats.totalPosts || 0, icon: MapPin, trend: '+4.0%', isUp: true },
+    { title: 'Conformidade Doc.', value: stats.totalVigilantes ? Math.round(((stats.totalVigilantes - stats.expiredDocuments) / stats.totalVigilantes) * 100) + '%' : '100%', icon: Shield, trend: '-1.2%', isUp: false },
+    { title: 'Alertas GPS (24h)', value: stats.offRadiusAlerts || 0, icon: AlertTriangle, trend: '+12%', isUp: false },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="text-sm font-bold uppercase tracking-widest animate-pulse">Sincronizando Inteligência...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -169,24 +189,26 @@ export default function Dashboard() {
         <div className="lg:col-span-2 card-brutalist">
           <h3 className="font-bold text-sm uppercase tracking-widest mb-6">Alertas de Conformidade</h3>
           <div className="space-y-4">
-            {[
-              { msg: 'Licença de Arma (AK-47 #992) expira em 5 dias', type: 'warning' },
-              { msg: 'Vigilante João Silva: Certificado de Formação vencido', type: 'error' },
-              { msg: 'Manutenção preventiva da Viatura LD-22-44 pendente', type: 'info' },
-            ].map((alert, i) => (
-              <div key={i} className={cn(
-                "p-4 border-l-4 flex items-center justify-between",
-                alert.type === 'warning' ? "bg-amber-50 border-amber-500 text-amber-800" :
-                  alert.type === 'error' ? "bg-rose-50 border-rose-500 text-rose-800" :
-                    "bg-blue-50 border-blue-500 text-blue-800"
-              )}>
-                <div className="flex items-center">
-                  <AlertTriangle size={18} className="mr-3" />
-                  <span className="text-sm font-medium">{alert.msg}</span>
+            {stats.alerts && stats.alerts.length > 0 ? (
+              stats.alerts.map((alert: any, i: number) => (
+                <div key={i} className={cn(
+                  "p-4 border-l-4 flex items-center justify-between",
+                  alert.type === 'warning' ? "bg-amber-50 border-amber-500 text-amber-800" :
+                    alert.type === 'error' ? "bg-rose-50 border-rose-500 text-rose-800" :
+                      "bg-blue-50 border-blue-500 text-blue-800"
+                )}>
+                  <div className="flex items-center">
+                    <AlertTriangle size={18} className="mr-3" />
+                    <span className="text-sm font-medium">{alert.msg}</span>
+                  </div>
+                  <button className="text-xs font-bold uppercase hover:underline">Resolver</button>
                 </div>
-                <button className="text-xs font-bold uppercase hover:underline">Resolver</button>
+              ))
+            ) : (
+              <div className="p-8 text-center bg-zinc-50 border border-zinc-100 italic text-zinc-400 text-sm">
+                Nenhum alerta de conformidade ativo. Sistema estável.
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -194,16 +216,16 @@ export default function Dashboard() {
           <h3 className="font-bold text-sm uppercase tracking-widest mb-6 text-brand-accent">Resumo Financeiro (Mês)</h3>
           <div className="space-y-6">
             <div>
-              <p className="text-xs opacity-60 uppercase font-bold mb-1">Receita Mensal</p>
-              <p className="text-2xl font-bold font-mono">{(stats.monthly_income || 0).toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
+              <p className="text-xs opacity-60 uppercase font-bold mb-1">Folha de Faturamento</p>
+              <p className="text-2xl font-bold font-mono">{(stats.totalPayrollAOA || 0).toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
             </div>
             <div className="h-px bg-brand-bg/10" />
             <div>
-              <p className="text-xs opacity-60 uppercase font-bold mb-1">Despesa Mensal</p>
-              <p className="text-2xl font-bold font-mono">{(stats.monthly_expense || 0).toLocaleString('pt-AO', { style: 'currency', currency: 'AOA' })}</p>
+              <p className="text-xs opacity-60 uppercase font-bold mb-1">Disponibilidade de Frota</p>
+              <p className="text-2xl font-bold font-mono">{stats.activeVehicles || 0} Viaturas</p>
             </div>
             <button className="w-full py-3 bg-brand-accent text-brand-primary font-bold uppercase text-xs tracking-widest hover:bg-white transition-colors">
-              Ver Fluxo de Caixa
+              Ver Detalhes BI
             </button>
           </div>
         </div>
