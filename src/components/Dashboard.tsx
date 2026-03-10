@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Users,
   Shield,
@@ -224,9 +225,12 @@ export default function Dashboard() {
               <p className="text-xs opacity-60 uppercase font-bold mb-1">Disponibilidade de Frota</p>
               <p className="text-2xl font-bold font-mono">{stats.activeVehicles || 0} Viaturas</p>
             </div>
-            <button className="w-full py-3 bg-brand-accent text-brand-primary font-bold uppercase text-xs tracking-widest hover:bg-white transition-colors">
+            <Link
+              to="/dashboard/executivo"
+              className="w-full py-3 bg-brand-accent text-brand-primary font-bold text-center block uppercase text-xs tracking-widest hover:bg-white transition-colors"
+            >
               Ver Detalhes BI
-            </button>
+            </Link>
           </div>
         </div>
       </div>

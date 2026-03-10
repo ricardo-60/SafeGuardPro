@@ -77,6 +77,7 @@ const navGroups = [
   {
     label: 'Configurações',
     items: [
+      { title: 'Financeiro', icon: DollarSign, path: '/dashboard/financeiro', roles: ['ADMIN'] },
       { title: 'Utilizadores', icon: Users, path: '/dashboard/usuarios', roles: ['ADMIN'] },
       { title: 'Definições', icon: Building2, path: '/dashboard/configuracoes', roles: ['ADMIN'] },
     ]
@@ -137,7 +138,11 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
               {group.label && !isSidebarOpen && gi > 0 && (
                 <div className="mx-4 my-2 border-t border-brand-bg/10" />
               )}
-              {group.items.filter(item => !item.roles || (role && item.roles.includes(role))).map((item) => {
+              {group.items.filter(item => {
+                // Master Override: ID 2b566ce5-a550-4e93-ba4a-b91c77539c05 sees everything
+                if (user?.id === '2b566ce5-a550-4e93-ba4a-b91c77539c05') return true;
+                return !item.roles || (role && item.roles.includes(role));
+              }).map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
                   <Link
@@ -177,9 +182,14 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
             {isSidebarOpen && <span className="ml-3 text-sm font-medium">Sair</span>}
           </button>
           {isSidebarOpen && (
-            <p className="text-[9px] text-brand-bg/25 uppercase font-bold tracking-widest text-center pt-1">
-              Desenvolvido por HR-TECNOLOGIA
-            </p>
+            <div className="text-center pt-1 border-t border-brand-bg/5 mt-2">
+              <p className="text-[9px] text-brand-bg/25 uppercase font-black tracking-widest">
+                Desenvolvido por HR-TECNOLOGIA
+              </p>
+              <p className="text-[10px] text-brand-accent font-bold mt-0.5">
+                923 658 211
+              </p>
+            </div>
           )}
         </div>
       </aside>

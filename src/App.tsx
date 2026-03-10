@@ -99,13 +99,12 @@ export default function App() {
                       <Route path="/assiduidade" element={<AttendanceSystem />} />
                       <Route path="/folha-pagamento" element={<PayrollSystem />} />
                       <Route path="/financeiro" element={<FinanceDashboard />} />
-                      <Route path="/viaturas" element={<VehicleFleetManager />} />
                       <Route path="/executivo" element={<ExecutiveDashboard />} />
                       <Route path="/frota" element={<VehicleFleetManager />} />
                       <Route path="/ativos-taticos" element={<TacticalKardex />} />
-                      <Route path="/relatorios" element={<ExecutiveDashboard />} />
                       <Route path="/audit" element={<AuditDashboard />} />
                       <Route path="/usuarios" element={<UserManagement />} />
+                      <Route path="/configuracoes" element={<CompanySettings />} />
                       <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                   </Layout>
